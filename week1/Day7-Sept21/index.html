@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To Do list</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap">
+  <style>
+    :root {
+      --bg-color: #f0f4f8;
+      --card-bg: #ffffff;
+      --text-color: #334155;
+      --primary-color: #4a90e2;
+      --hover-color: #3a75c4;
+      --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .container {
+      background-color: var(--card-bg);
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    h1, h3 {
+      margin: 0;
+      color: var(--text-color);
+    }
+    
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 400;
+      color: #94a3b8;
+      margin-bottom: 25px;
+    }
+
+    .form-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    #todo-input {
+      flex-grow: 1;
+      padding: 12px 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    #todo-input:focus {
+      border-color: var(--primary-color);
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+
+    button:hover {
+      background-color: var(--hover-color);
+      transform: translateY(-2px);
+    }
+
+    .list-container {
+      text-align: left;
+    }
+
+    #todo-list {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .todo-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #f8fafc;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .todo-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .todo-item-text {
+      flex-grow: 1;
+      font-size: 1rem;
+      cursor: pointer;
+      word-break: break-word;
+    }
+
+    .todo-item.completed .todo-item-text {
+      text-decoration: line-through;
+      color: #94a3b8;
+    }
+
+    .todo-item .delete-btn {
+      background: none;
+      border: none;
+      color: #e2e8f0;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: color 0.3s;
+      margin-left: 10px;
+    }
+
+    .todo-item:hover .delete-btn {
+      color: #ef4444;
+    }
+    
+    @media (max-width: 600px) {
+        body {
+            align-items: flex-start;
+        }
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>To Do List</h1>
+    <h3>with local storage</h3>
+
+    <div class="form-controls">
+      <input type="text" id="todo-input" placeholder="Add a new task...">
+      <button id="add-btn">Add</button>
+    </div>
+
+    <div class="list-container">
+      <ul id="todo-list">
+        <!-- Tasks will be inserted here by JavaScript -->
+      </ul>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const todoInput = document.getElementById('todo-input');
+      const addBtn = document.getElementById('add-btn');
+      const todoList = document.getElementById('todo-list');
+
+      // Function to save tasks to local storage
+      const saveTasks = () => {
+        const tasks = [];
+        todoList.querySelectorAll('.todo-item').forEach(item => {
+          tasks.push({
+            text: item.querySelector('.todo-item-text').textContent,
+            completed: item.classList.contains('completed')
+          });
+        });
+        localStorage.setItem('todos', JSON.stringify(tasks));
+      };
+
+      // Function to load tasks from local storage
+      const loadTasks = () => {
+        const tasks = JSON.parse(localStorage.getItem('todos')) || [];
+        tasks.forEach(task => {
+          const newItem = createTodoItem(task.text, task.completed);
+          todoList.appendChild(newItem);
+        });
+      };
+
+      // Function to create a new list item element
+      const createTodoItem = (text, completed = false) => {
+        const li = document.createElement('li');
+        li.classList.add('todo-item');
+        if (completed) {
+          li.classList.add('completed');
+        }
+
+        const span = document.createElement('span');
+        span.classList.add('todo-item-text');
+        span.textContent = text;
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.classList.add('delete-btn');
+        deleteBtn.innerHTML = '&times;'; 
+
+        li.appendChild(span);
+        li.appendChild(deleteBtn);
+
+        return li;
+      };
+
+      // Add new task handler
+      const handleAddTask = () => {
+        const text = todoInput.value.trim();
+        if (text !== '') {
+          const newItem = createTodoItem(text);
+          todoList.appendChild(newItem);
+          todoInput.value = '';
+          saveTasks();
+        }
+      };
+
+      // Event listener for adding a task via button click
+      addBtn.addEventListener('click', handleAddTask);
+
+      // Event listener for adding a task via 'Enter' key press
+      todoInput.addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+          handleAddTask();
+        }
+      });
+
+      // Event listener for marking as complete or deleting
+      todoList.addEventListener('click', (event) => {
+        const clickedElement = event.target;
+        if (clickedElement.classList.contains('todo-item-text')) {
+          clickedElement.parentElement.classList.toggle('completed');
+        } else if (clickedElement.classList.contains('delete-btn')) {
+          clickedElement.parentElement.remove();
+        }
+        saveTasks();
+      });
+
+      // Load tasks when the page loads
+      loadTasks();
+    });
+  </script>
+</body>
+</html>
